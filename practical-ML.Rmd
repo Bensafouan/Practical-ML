@@ -1,0 +1,71 @@
+---
+title: "Practical Machine Learning - Week 4 Project"
+author: "Bensafouan Abdelhalim"
+date: "28/08/2020"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+```
+
+## EXECUTIVE DATA
+
+the purpose of this project is to predict the manner in which poeple do like exercise  , the data was collected by HAR (Human Activity Recognition) , more information is availavle here : http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har 
+
+```{r cars}
+library(caret)
+library(knitr)
+library(randomForest)
+library(rpart)
+library(rpart.plot)
+```
+
+
+## EXPLORATORY DATA ANALYSIS
+
+
+```{r pressure }
+training <- read.csv("pml-training.csv")
+testing <- read.csv("pml-testing.csv")
+
+```
+
+
+
+ Delete variables that are not related
+```{r  }
+training <- training[, -c(1:7)]
+testing <- testing[, -c(1:7)]
+training$classe <- as.factor(training$classe)
+# to see wish variables haven't any variability to remove them
+training <- training[,-nearZeroVar(training)]
+
+```
+
+```{r  }
+inTrain <- createDataPartition(y=training$classe, p=0.75, list=FALSE)
+training1 <- training[inTrain,]
+testing1 <- training[-inTrain,]
+```
+
+we wille use PCA method to reduce the data 
+
+```{r  }
+pre <- preProcess(training1[,-length(training1)],method="pca")
+dataPCA <- predict(pre,training1[,-length(training1)])
+```
+
+## Prediction 
+
+we will use dataPCA as Dataset and random forest as a prediction model and we will test the model by testing Dataset
+
+```{r  }
+randomForestModel <- randomForest(classe ~. ,data=training1,na.action = na.roughfix)
+randomForestPrediction <- predict(randomForestModel, testing1, type = "class")
+confusionMatrix(randomForestPrediction, testing1$classe)
+```
+
+
+Based on the data available, we're able to fit  model with a high degree of accuracy in predicting out of sample observations.
